@@ -4,13 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>GeoJSON tutorial - Leaflet</title>
-
-    <link
-      rel="shortcut icon"
-      type="image/x-icon"
-      href="docs/images/favicon.ico"
-    />
+    <title>GeoJSON</title>
 
     <link
       rel="stylesheet"
@@ -30,6 +24,7 @@
         height: 100%;
         margin: 0;
       }
+
       .leaflet-container {
         height: 100%;
         width: 100%;
@@ -49,15 +44,11 @@
         map = L.map("map").setView([39.74739, -105], 13);
 
         const tiles = L.tileLayer(
-          "https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw",
+          "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
           {
-            maxZoom: 18,
+            maxZoom: 19,
             attribution:
-              'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, ' +
-              'Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
-            id: "mapbox/light-v9",
-            tileSize: 512,
-            zoomOffset: -1,
+              '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
           }
         ).addTo(map);
       };
@@ -77,7 +68,9 @@
           if (properties.zipCode) {
             alert(`ZIP code: ${properties.zipCode}`);
           } else if (properties.state) {
-            loadGeoJson(`codes-geojson/${properties.state.toLowerCase()}.json`);
+            loadGeoJson(
+              `postal-areas/${properties.state.toLowerCase()}/geometry.json`
+            );
           }
         });
 
@@ -87,11 +80,6 @@
       const loadGeoJson = (path) => {
         const options = {
           method: "GET",
-          // headers: {
-          //   "X-RapidAPI-Host": "vanitysoft-boundaries-io-v1.p.rapidapi.com",
-          //   "X-RapidAPI-Key":
-          //     "bbf75cfe3bmsh27fc9ceb071a5e3p13486cjsn2a23e2b18535",
-          // },
         };
 
         fetch(path, options)
@@ -104,7 +92,7 @@
 
       const main = async () => {
         initMap();
-        loadGeoJson("states-geojson.json");
+        loadGeoJson("states.json");
       };
 
       main();
