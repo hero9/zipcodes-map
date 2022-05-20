@@ -128,6 +128,12 @@
 
             stateSelected = state;
 
+            map.setMaxBounds(event.layer.getBounds());
+            map.fitBounds(event.layer.getBounds(), {
+              maxZoom: 16,
+              animate: false,
+            });
+
             statesLayer.getLayers().forEach((layer) => {
               const isCurrentLayer = layer.feature.properties.state === state;
               layer.setStyle({
@@ -136,30 +142,25 @@
             });
 
             postalsLayer.clearLayers();
+
             postalsLayer.addData(
-              await fetchJson(`postal-areas/${state}/geometry.json`)
+              await fetchJson(`postal-areas/by-state/${state}.json`)
             );
 
+            map.setMaxBounds(postalsLayer.getBounds());
             map.fitBounds(postalsLayer.getBounds(), {
               maxZoom: 16,
-              animate: false,
+              animate: true,
             });
-            map.setMaxBounds(postalsLayer.getBounds());
           });
 
         const postalsLayer = L.geoJSON(undefined, {
-          pointToLayer: (feature, latLng) => {
-            const label = String(feature.properties.code);
-            return new L.CircleMarker(latLng, {
-              radius: 1,
-            })
-              .bindTooltip(label, { permanent: true, opacity: 0.7 })
-              .openTooltip();
-          },
           style: (feature) => {
             return {
+              color: primaryColor,
               fillColor: palette[Math.floor(Math.random() * palette.length)],
-              weight: 0,
+              weight: 1,
+              opacity: 0.15,
               fillOpacity: 0.45,
               zIndex: 200,
             };
@@ -167,10 +168,56 @@
         })
           .addTo(map)
           .on("click", async (event) => {
+            if (
+              !selectsLayer
+                .getLayers()
+                .some(
+                  (layer) =>
+                    layer.feature.properties.code ===
+                    event.layer.feature.properties.code
+                )
+            ) {
+              // selectsLayer.getLayers().forEach((layer) => {
+              //   if (
+              //     layer.feature.properties.code ===
+              //     event.layer.feature.properties.code
+              //   ) {
+              //     selectsLayer.removeLayer(layer);
+              //   }
+              // });
+              // } else {
+              selectsLayer.addData(event.layer.feature);
+            }
+            // console.log(event.layer.feature.properties.code);
+          });
+
+        const selectsLayer = L.geoJSON(undefined, {
+          style: (feature) => {
+            return {
+              color: primaryColor,
+              fillColor: primaryColor,
+              weight: 1,
+              opacity: 0.75,
+              fillOpacity: 0.75,
+              zIndex: 300,
+            };
+          },
+        })
+          .addTo(map)
+          .on("click", async (event) => {
+            selectsLayer.removeLayer(event.layer);
             console.log(event.layer.feature.properties.code);
           });
 
         statesLayer.addData(await fetchJson("states.json"));
+
+        selectsLayer.addData(
+          await Promise.all(
+            ["57626", "57567", "57552", "57625", "57623", "57622", "57553"].map(
+              (code) => fetchJson(`postal-areas/by-code/${code}.json`)
+            )
+          )
+        );
       };
 
       main();
